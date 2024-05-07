@@ -8,6 +8,7 @@ def main_menu():
         print("2. Uzupełnij tabele słownikowe")
         print("3. Generator danych")
         print("4. Usuń bazę danych")
+        print("5. Zamknij połączenie z bazą danych")
         print("0. Wyjście")
         
         choice = input("Wybierz opcję: ")
@@ -20,6 +21,8 @@ def main_menu():
             data_generation_menu()
         elif choice == "4":
             Generator.drop_database()
+        elif choice == "5":
+            Generator.close_connection()
         elif choice == "0":
             print("Zamykanie programu...")
             break

@@ -2,9 +2,16 @@ import oracledb
 from faker import Faker
 import random
 
-fake = Faker('en_GB')  # Ustawienie generatora danych na polski
+fake = Faker('en_US')  # Ustawienie generatora danych na polski
 
-connection = oracledb.connect(user='login', password='passwoerd', dsn='ip/protocol')
+connection = oracledb.connect(user='login', password='password', dsn='ipaddres/protocol')
+
+def close_connection():
+    try:
+        connection.close()
+        print("Połączenie z bazą danych zostało zamknięte.")
+    except Exception as e:
+        print(f"Błąd przy zamykaniu połączenia: {e}")
 
 def create_database():
     print("Tworzenie bazy danych...")
