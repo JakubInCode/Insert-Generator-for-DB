@@ -2,9 +2,9 @@ import oracledb
 from faker import Faker
 import random
 
-fake = Faker('pl_PL')  # Ustawienie generatora danych na polski
+fake = Faker('en_GB')  # Ustawienie generatora danych na polski
 
-connection = oracledb.connect(user='s102523', password='A1asdfgh213', dsn='217.173.198.135/tpdb')
+connection = oracledb.connect(user='login', password='passwoerd', dsn='ip/protocol')
 
 def create_database():
     print("Tworzenie bazy danych...")
@@ -20,18 +20,16 @@ def create_database():
                 except Exception as e:
                     print(f"Failed to execute {command}: {e}")
 
-def save_insert_to_file(table_name, columns, values, file_name="inserts.txt"):
-    values_strings = [f"'{value}'" if isinstance(value, str) else str(value) for value in values]
-    values_string = ", ".join(values_strings)
-    columns_string = ", ".join(columns)
-    
-    # Tworzenie zapytania INSERT
-    insert_query = f"INSERT INTO {table_name} ({columns_string}) VALUES ({values_string});\n"
-
-    # Zapisywanie zapytania do pliku
+def save_insert_to_file(query, file_name="inserts.txt"):
     with open(file_name, "a") as file:
-        file.write(insert_query)
+        file.write(query + "\n")
 
+def fetch_existing_ids(table, column):
+    """ Pobiera listę istniejących ID z podanej tabeli. """
+    with connection.cursor() as cursor:
+        cursor.execute(f"SELECT {column} FROM {table}")
+        return [row[0] for row in cursor.fetchall()]
+    
 def populate_dictionaries():
     print("Uzupełnianie tabel słownikowych...")
     dictionary_data = {
@@ -150,7 +148,7 @@ def generate_serwisy_konserwacji(num_rows):
         nazwa = fake.company()
         opis = fake.text(max_nb_chars=200)
         adres = fake.address()
-        telefon = fake.phone_number()
+        telefon = fake.random_number(9)
         data_to_insert.append((next_id, nazwa, opis, adres, telefon))
         next_id += 1
 
@@ -215,6 +213,9 @@ def generate_pracownik(num_rows):
     next_id = get_next_id("pracownik", "id_pracownika")
     data_to_insert = []
     
+    existing_stanowisko_ids = fetch_existing_ids("stanowisko", "id_stanowiska")
+    existing_wyplata_ids = fetch_existing_ids("wyplata", "id_wyplaty")
+    
     for _ in range(num_rows):
         imie = fake.first_name()
         nazwisko = fake.last_name()
@@ -222,9 +223,9 @@ def generate_pracownik(num_rows):
         data_zwolnienia = fake.date_between(start_date=data_zatrudnienia, end_date='today') if random.choice([True, False]) else None
         powod_zwolnienia = fake.sentence(nb_words=5) if data_zwolnienia else None
         email = fake.email()
-        telefon = fake.phone_number()
-        ko_id_stanowiska = random.randint(1, 5)
-        ko_id_wyplaty = random.randint(1, 100)
+        telefon = fake.random_number(9)
+        ko_id_stanowiska = random.choice(existing_stanowisko_ids)
+        ko_id_wyplaty = random.choice(existing_wyplata_ids)
 
         data_to_insert.append((next_id, imie, nazwisko, data_zatrudnienia, data_zwolnienia, powod_zwolnienia, email, telefon,
                                ko_id_stanowiska, ko_id_wyplaty))
@@ -247,23 +248,27 @@ def generate_eksponat(num_rows):
     next_id = get_next_id("eksponat", "id_eksponatu")
     data_to_insert = []
 
+    existing_cat_ids = fetch_existing_ids("kategorie_eksponatow", "id_kategorii_eksponatu")
+    existing_his_ids = fetch_existing_ids("historia_eksponatu", "id_historii_eksponatu")
+    existing_zas_ids = fetch_existing_ids("zasob_cyfrowy", "id_zasobu_cyfrowego")
+    existing_lok_ids = fetch_existing_ids("lokalizacja_eksponatu", "id_lokalizacji_eksponatu")
+    existing_mag_ids = fetch_existing_ids("magazyn", "id_magazynu")
+
     for _ in range(num_rows):
         nazwa = fake.sentence(nb_words=3)
         opis = fake.text(max_nb_chars=200)
         pochodzenie = fake.country()
         data_nabycia = fake.date_between(start_date='-10y', end_date='today')
         stan_zachowania = fake.word(ext_word_list=['dobry', 'średni', 'zły'])
-        ko_id_kategorii_eksponatu = random.randint(1, 5)
-        ko_id_historii_eksponatu = random.randint(1, 5)
-        ko_id_zasobu_cyfrowego = random.randint(1, 5)
-        ko_id_lokalizacji_eksponatu = random.randint(1, 5)
-        ko_id_magazynu = random.randint(1, 5)
-
-        row_data = (next_id, nazwa, opis, pochodzenie, data_nabycia, stan_zachowania,
-                    ko_id_kategorii_eksponatu, ko_id_historii_eksponatu, ko_id_zasobu_cyfrowego,
-                    ko_id_lokalizacji_eksponatu, ko_id_magazynu)
+        ko_id_kategorii_eksponatu = random.choice(existing_cat_ids)
+        ko_id_historii_eksponatu = random.choice(existing_his_ids)
+        ko_id_zasobu_cyfrowego = random.choice(existing_zas_ids)
+        ko_id_lokalizacji_eksponatu = random.choice(existing_lok_ids)
+        ko_id_magazynu = random.choice(existing_mag_ids)
         
-        data_to_insert.append(row_data)
+        data_to_insert.append((next_id, nazwa, opis, pochodzenie, data_nabycia, stan_zachowania,
+                    ko_id_kategorii_eksponatu, ko_id_historii_eksponatu, ko_id_zasobu_cyfrowego,
+                    ko_id_lokalizacji_eksponatu, ko_id_magazynu))
         next_id += 1
 
     # Wstawianie do bazy danych używając cursor.executemany()
@@ -287,15 +292,19 @@ def generate_konserwacje(num_rows):
     next_id = get_next_id("konserwacje", "id_konserwacji")
     data_to_insert = []
     
+    existing_eksponat_ids = fetch_existing_ids("eksponat", "id_eksponatu")
+    existing_serwis_ids = fetch_existing_ids("serwisy_konserwacji", "id_serwisu_konserwacji")
+    existing_status_ids = fetch_existing_ids("status_konserwacji", "id_statusu_konserwacji")
+    
     for _ in range(num_rows):
         data_rozpoczecia = fake.date_between(start_date='-5y', end_date='today')
         data_zakonczenia = fake.date_between(start_date=data_rozpoczecia, end_date='today')
         opis = fake.sentence(nb_words=8)
         wynik_przegladu = fake.sentence(nb_words=8)
         decyzja = fake.word(ext_word_list=['zaakceptowano', 'odrzucono'])
-        ko_id_eksponatu = random.randint(1, 100)
-        ko_id_serwisu_konserwacji = random.randint(1, 5)
-        ko_id_statusu_konserwacji = random.randint(1, 5)
+        ko_id_eksponatu = random.choice(existing_eksponat_ids)
+        ko_id_serwisu_konserwacji = random.choice(existing_serwis_ids)
+        ko_id_statusu_konserwacji = random.choice(existing_status_ids)
         data_to_insert.append((next_id, data_rozpoczecia, data_zakonczenia, opis, wynik_przegladu, decyzja,
                                ko_id_eksponatu, ko_id_serwisu_konserwacji, ko_id_statusu_konserwacji))
         next_id += 1
@@ -341,10 +350,13 @@ def generate_eksponaty_na_wystawie(num_rows):
     next_id = get_next_id("eksponaty_na_wystawie", "ko_id_eksponatu")
     data_to_insert = []
     
+    existing_eksponat_ids = fetch_existing_ids("eksponat", "id_eksponatu")
+    existing_wystawa_ids = fetch_existing_ids("wystawa", "id_wystawy")
+    
     for _ in range(num_rows):
         data_umieszczenia = fake.date_between(start_date='-5y', end_date='today')
-        ko_id_wystawy = random.randint(1, 10)
-        ko_id_eksponatu = next_id
+        ko_id_eksponatu = random.choice(existing_eksponat_ids)
+        ko_id_wystawy = random.choice(existing_wystawa_ids)
         data_to_insert.append((data_umieszczenia, ko_id_wystawy, ko_id_eksponatu))
         next_id += 1
 
@@ -364,11 +376,15 @@ def generate_zamowienie_eksponatu(num_rows):
     next_id = get_next_id("zamowienie_eksponatu", "id_zamowienia_eksponatu")
     data_to_insert = []
     
+    existing_eksponat_ids = fetch_existing_ids("eksponat", "id_eksponatu")
+    existing_pracownik_ids = fetch_existing_ids("pracownik", "id_pracownika")
+    existing_status_zamowienia_ids = fetch_existing_ids("status_zamowienia", "id_statusu_zamowienia")
+
     for _ in range(num_rows):
         data_zamowienia = fake.date_between(start_date='-2y', end_date='today')
-        ko_id_eksponatu = random.randint(1, 100)
-        ko_id_pracownika = random.randint(1, 100)
-        ko_id_statusu_zamowienia = random.randint(1, 5)
+        ko_id_eksponatu = random.choice(existing_eksponat_ids)
+        ko_id_pracownika = random.choice(existing_pracownik_ids)
+        ko_id_statusu_zamowienia = random.choice(existing_status_zamowienia_ids)
 
         data_to_insert.append((next_id, data_zamowienia, ko_id_eksponatu, ko_id_pracownika, ko_id_statusu_zamowienia))
         next_id += 1
@@ -389,12 +405,16 @@ def generate_zgloszenie_konserwacji(num_rows):
     next_id = get_next_id("zgloszenie_konserwacji", "id_zgloszenia_konserwacji")
     data_to_insert = []
     
+    existing_pracownik_ids = fetch_existing_ids("pracownik", "id_pracownika")
+    existing_konserwacje_ids = fetch_existing_ids("konserwacje", "id_konserwacji")
+    existing_eksponat_ids = fetch_existing_ids("eksponat", "id_eksponatu")
+    
     for _ in range(num_rows):
         data_zgloszenia = fake.date_between(start_date='-2y', end_date='today')
         opis = fake.sentence(nb_words=10)
-        ko_id_pracownika = random.randint(1, 100)
-        ko_id_konserwacji = random.randint(1, 100)
-        ko_id_eksponatu = random.randint(1, 100)
+        ko_id_pracownika = random.choice(existing_pracownik_ids)
+        ko_id_konserwacji = random.choice(existing_konserwacje_ids)
+        ko_id_eksponatu = random.choice(existing_eksponat_ids)
         data_to_insert.append((next_id, data_zgloszenia, opis, ko_id_pracownika, ko_id_konserwacji, ko_id_eksponatu))
         next_id += 1
 

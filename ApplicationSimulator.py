@@ -1,5 +1,6 @@
 import Generator
-
+from replit import clear
+ 
 def main_menu():
     while True:
         print("\nMenu Główne:")
@@ -26,29 +27,41 @@ def main_menu():
             print("Nieprawidłowa opcja. Proszę wybrać ponownie.")
 
 def data_generation_menu():
+    clear()
     num_rows = int(input("Podaj ilość wierszy do dodania: "))
     print("\nGenerator Danych:")
     print("1. Dodaj podaną ilość wierszy do wszystkich tabel")
+    print("2. Dodaj podaną ilość wierszy do tabeli Historia_eksponatu")
+    print("3. Dodaj podaną ilość wierszy do tabeli Lokalizacja_eksponatu")
+    print("4. Dodaj podaną ilość wierszy do tabeli Magazyn")
+    print("5. Dodaj podaną ilość wierszy do tabeli Serwisy_konserwacji")
+    print("6. Dodaj podaną ilość wierszy do tabeli Wyplata")
+    print("7. Dodaj podaną ilość wierszy do tabeli Zasob_cyfrowy")
+    print("8. Dodaj podaną ilość wierszy do tabeli Pracownik")
+    print("9. Dodaj podaną ilość wierszy do tabeli Eksponat")
+    print("10. Dodaj podaną ilość wierszy do tabeli Konserwacje")
+    print("11. Dodaj podaną ilość wierszy do tabeli Wystawa")
+    print("12. Dodaj podaną ilość wierszy do tabeli Eksponaty_na_wystawie")
+    print("13. Dodaj podaną ilość wierszy do tabeli Zamowienie_eksponatu")
+    print("14. Dodaj podaną ilość wierszy do tabeli Zgloszenie_konserwacji")
     print("0. Powrót do menu głównego")
     
     choice = input("Wybierz opcję: ")
     
     if choice == "1":
-        # Lista funkcji generujących w dobrej kolejności, zależnej od zależności kluczy obcych
-        # Pamiętaj, że funkcje powinny być zdefiniowane w Generator.py
         Generator.generate_historia_eksponatu(num_rows)
-        Generator.generate_eksponat(num_rows)
-        Generator.generate_konserwacje(num_rows)
         Generator.generate_lokalizacja_eksponatu(num_rows)
+        Generator.generate_magazyn(num_rows)
+        Generator.generate_serwisy_konserwacji(num_rows)
+        Generator.generate_wyplata(num_rows)
         Generator.generate_zasob_cyfrowy(num_rows)
         Generator.generate_pracownik(num_rows)
-        Generator.generate_zamowienie_eksponatu(num_rows)
-        Generator.generate_eksponaty_na_wystawie(num_rows)
+        Generator.generate_eksponat(num_rows)
+        Generator.generate_konserwacje(num_rows)
         Generator.generate_wystawa(num_rows)
-        Generator.generate_wyplata(num_rows)
+        Generator.generate_eksponaty_na_wystawie(num_rows)
+        Generator.generate_zamowienie_eksponatu(num_rows)
         Generator.generate_zgloszenie_konserwacji(num_rows)
-        Generator.generate_serwisy_konserwacji(num_rows)
-        Generator.generate_magazyn(num_rows)
         print("Dane dodane do wszystkich tabel.")
     elif choice == "2":
         Generator.generate_historia_eksponatu(num_rows)

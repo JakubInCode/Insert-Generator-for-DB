@@ -73,7 +73,7 @@ CREATE TABLE pracownik (
     nazwisko                 					VARCHAR2(100 CHAR) NOT NULL,
     data_zatrudnienia        					DATE NOT NULL,
     data_zwolnienia          					DATE,
-    powód_zwolnienia         					CLOB,
+    powod_zwolnienia         					CLOB,
     "E-mail"                 					VARCHAR2(255 CHAR),
     telefon                  					VARCHAR2(15 CHAR),
     ko_id_stanowiska 							INTEGER NOT NULL,
@@ -154,7 +154,7 @@ ALTER TABLE wystawa ADD CONSTRAINT wystawa_pk PRIMARY KEY ( id_wystawy );
 
 CREATE TABLE zamowienie_eksponatu (
     id_zamowienia_eksponatu                 	INTEGER NOT NULL,
-    data_zamówienia                         	DATE NOT NULL,
+    data_zamowienia                         	DATE NOT NULL,
     ko_id_eksponatu                   			INTEGER NOT NULL,
     ko_id_pracownika                 			INTEGER NOT NULL, 
     ko_id_statusu_zamowienia 					INTEGER NOT NULL
